@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     secret_key: str = Field(min_length=32)
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 60
+    backend_cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
 
     model_config = SettingsConfigDict(
         env_file=(".env", "../.env"),
@@ -25,3 +26,12 @@ class Settings(BaseSettings):
 @lru_cache
 def get_settings() -> Settings:
     return Settings()
+
+
+def get_cors_origins() -> list[str]:
+    settings = get_settings()
+    return [
+        origin.strip()
+        for origin in settings.backend_cors_origins.split(",")
+        if origin.strip()
+    ]

@@ -4,7 +4,7 @@ End-to-end transaction risk scoring platform using FastAPI, PostgreSQL, business
 
 ## Current Status
 
-Phases 1 to 6 are implemented:
+Phases 1 to 7 are implemented:
 
 - Initial repository structure
 - Minimal FastAPI backend
@@ -30,10 +30,12 @@ Phases 1 to 6 are implemented:
 - JWT access tokens
 - Protected transaction endpoints
 - Protected dashboard metrics endpoints
+- React + TypeScript administrative dashboard
+- Dashboard charts and transaction analysis form
 
 The following modules are intentionally not implemented yet:
 
-- Frontend
+- Feedback workflow
 
 ## Project Structure
 
@@ -88,6 +90,36 @@ docker-compose.yml
 .env.example
 .gitignore
 README.md
+
+frontend/
+  src/
+    api/
+      auth.ts
+      client.ts
+      dashboard.ts
+      transactions.ts
+    components/
+      DecisionBadge.tsx
+      Layout.tsx
+      MetricCard.tsx
+      ProtectedRoute.tsx
+      RiskBadge.tsx
+      TransactionTable.tsx
+    pages/
+      DashboardPage.tsx
+      LoginPage.tsx
+      TransactionDetailPage.tsx
+      TransactionsPage.tsx
+    types/
+      auth.ts
+      dashboard.ts
+      transaction.ts
+    App.tsx
+    index.css
+    main.tsx
+  Dockerfile
+  package.json
+  vite.config.ts
 ```
 
 ## Run Locally With Docker
@@ -120,6 +152,12 @@ The API will be available at:
 
 ```text
 http://localhost:8000
+```
+
+The frontend will be available at:
+
+```text
+http://localhost:5173
 ```
 
 Interactive API docs:
@@ -160,6 +198,12 @@ ACCESS_TOKEN_EXPIRE_MINUTES=60
 ```
 
 `SECRET_KEY` must come from your local environment or `.env`; do not commit real secrets.
+
+Frontend variable:
+
+```text
+VITE_API_BASE_URL=http://localhost:8000
+```
 
 ## Machine Learning Model
 
@@ -360,6 +404,47 @@ curl http://localhost:8000/dashboard/category-risk \
   -H "Authorization: Bearer <ACCESS_TOKEN>"
 ```
 
+## Frontend
+
+Install frontend dependencies:
+
+```bash
+cd frontend
+npm install
+```
+
+Run the frontend locally:
+
+```bash
+npm run dev
+```
+
+Build the frontend:
+
+```bash
+npm run build
+```
+
+Run the full stack with Docker:
+
+```bash
+docker compose up --build
+```
+
+Frontend routes:
+
+- `/login`: admin login
+- `/dashboard`: metrics, charts and recent transactions
+- `/transactions`: transaction table and analysis form
+- `/transactions/:id`: transaction detail view
+
+Future screenshots to add:
+
+- Login screen
+- Dashboard metrics overview
+- Transaction analysis form with a HIGH risk result
+- Transaction detail with rule and ML scores
+
 ## Tests
 
 Run unit tests:
@@ -370,4 +455,4 @@ docker compose run --rm api python -m pytest
 
 ## Next Phase
 
-Phase 7 will add the React administrative dashboard.
+Phase 8 will add transaction feedback labels for fraud review.
