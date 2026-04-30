@@ -1,0 +1,37 @@
+services:
+  api:
+    build:
+      context: ./backend
+    container_name: riskshield-api
+    environment:
+      APP_NAME: ${APP_NAME:-RiskShield AI}
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://riskshield:riskshield_password@postgres:5432/riskshield_ai}
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    volumes:
+      - ./backend/app:/app/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: riskshield-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-riskshield}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-riskshield_password}
+      POSTGRES_DB: ${POSTGRES_DB:-riskshield_ai}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
