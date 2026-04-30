@@ -4,7 +4,7 @@ End-to-end transaction risk scoring platform using FastAPI, PostgreSQL, business
 
 ## Current Status
 
-Phases 1 to 5 are implemented:
+Phases 1 to 6 are implemented:
 
 - Initial repository structure
 - Minimal FastAPI backend
@@ -29,11 +29,11 @@ Phases 1 to 5 are implemented:
 - Admin registration and login
 - JWT access tokens
 - Protected transaction endpoints
+- Protected dashboard metrics endpoints
 
 The following modules are intentionally not implemented yet:
 
 - Frontend
-- Dashboard
 
 ## Project Structure
 
@@ -49,6 +49,10 @@ backend/
       models.py
       session.py
     auth/
+      router.py
+      schemas.py
+      service.py
+    dashboard/
       router.py
       schemas.py
       service.py
@@ -74,6 +78,7 @@ backend/
   tests/
     conftest.py
     test_auth.py
+    test_dashboard.py
     test_risk_engine.py
   alembic.ini
   Dockerfile
@@ -296,6 +301,65 @@ The response includes:
 }
 ```
 
+## Dashboard API
+
+Dashboard endpoints require a Bearer token.
+
+Get global metrics:
+
+```bash
+curl http://localhost:8000/dashboard/metrics \
+  -H "Authorization: Bearer <ACCESS_TOKEN>"
+```
+
+Example response:
+
+```json
+{
+  "total_transactions": 120,
+  "risk_level_counts": {
+    "LOW": 70,
+    "MEDIUM": 35,
+    "HIGH": 15
+  },
+  "decision_counts": {
+    "APPROVE": 70,
+    "REVIEW": 35,
+    "BLOCK": 15
+  },
+  "blocked_rate": 0.125,
+  "average_final_score": 0.42,
+  "model_available_rate": 0.95
+}
+```
+
+Metrics:
+
+- `blocked_rate`: blocked transactions divided by total transactions.
+- `average_final_score`: average persisted final score (`risk_score`).
+- `model_available_rate`: transactions analyzed with ML available divided by total transactions.
+
+Get recent transactions:
+
+```bash
+curl "http://localhost:8000/dashboard/recent-transactions?limit=10" \
+  -H "Authorization: Bearer <ACCESS_TOKEN>"
+```
+
+Get country risk distribution:
+
+```bash
+curl http://localhost:8000/dashboard/country-risk \
+  -H "Authorization: Bearer <ACCESS_TOKEN>"
+```
+
+Get merchant category risk distribution:
+
+```bash
+curl http://localhost:8000/dashboard/category-risk \
+  -H "Authorization: Bearer <ACCESS_TOKEN>"
+```
+
 ## Tests
 
 Run unit tests:
@@ -306,4 +370,4 @@ docker compose run --rm api python -m pytest
 
 ## Next Phase
 
-Phase 6 will add dashboard API metrics.
+Phase 7 will add the React administrative dashboard.
