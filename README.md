@@ -4,7 +4,7 @@ End-to-end transaction risk scoring platform using FastAPI, PostgreSQL, business
 
 ## Current Status
 
-Phase 1 is implemented:
+Phase 2 is implemented:
 
 - Initial repository structure
 - Minimal FastAPI backend
@@ -13,15 +13,19 @@ Phase 1 is implemented:
 - Dockerfile for the backend
 - Docker Compose with PostgreSQL
 - Example environment file
+- PostgreSQL connection with SQLAlchemy
+- Initial `User` and `Transaction` models
+- Alembic configuration
+- Initial database migration
+- Basic transaction create/list endpoints
 
 The following modules are intentionally not implemented yet:
 
 - Authentication
-- Database models
-- Alembic migrations
 - Machine Learning
 - Frontend
 - Dashboard
+- Advanced risk scoring logic
 
 ## Project Structure
 
@@ -31,6 +35,18 @@ backend/
     main.py
     core/
       config.py
+    db/
+      database.py
+      models.py
+      session.py
+    transactions/
+      router.py
+      schemas.py
+      service.py
+  alembic/
+    versions/
+      0001_initial_schema.py
+  alembic.ini
   Dockerfile
   requirements.txt
 
@@ -72,6 +88,27 @@ Interactive API docs:
 http://localhost:8000/docs
 ```
 
+## Database Migrations
+
+Build the backend image and start PostgreSQL:
+
+```bash
+docker compose build api
+docker compose up -d postgres
+```
+
+Run Alembic migrations:
+
+```bash
+docker compose run --rm api alembic upgrade head
+```
+
+Check current migration:
+
+```bash
+docker compose run --rm api alembic current
+```
+
 ## Health Check
 
 Test the backend:
@@ -90,6 +127,30 @@ Expected response:
 }
 ```
 
+## Transactions API
+
+Create a transaction:
+
+```bash
+curl -X POST http://localhost:8000/transactions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "user_id": "USR-001",
+    "amount": 250000,
+    "currency": "ARS",
+    "country": "Argentina",
+    "device": "mobile",
+    "hour": 3,
+    "merchant_category": "electronics"
+  }'
+```
+
+List transactions:
+
+```bash
+curl "http://localhost:8000/transactions?limit=50&offset=0"
+```
+
 ## Next Phase
 
-Phase 2 will add SQLAlchemy, database models, Alembic migrations and basic transaction endpoints.
+Phase 3 will add the first version of the Risk Engine using business rules only.
