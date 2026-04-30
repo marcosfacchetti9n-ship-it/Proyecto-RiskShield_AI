@@ -31,6 +31,8 @@ def add_transaction(
     decision: str | None = "APPROVE",
     risk_score: Decimal | None = Decimal("0.2000"),
     model_available: bool = False,
+    feedback_label: str | None = None,
+    feedback_notes: str | None = None,
     created_at: datetime | None = None,
 ) -> Transaction:
     transaction = Transaction(
@@ -49,6 +51,8 @@ def add_transaction(
         decision=decision,
         model_available=model_available,
         main_factors=[],
+        feedback_label=feedback_label,
+        feedback_notes=feedback_notes,
         created_at=created_at or datetime.now(timezone.utc),
     )
     db.add(transaction)
@@ -85,6 +89,12 @@ def test_metrics_with_empty_database_do_not_break(client: TestClient) -> None:
         "blocked_rate": 0.0,
         "average_final_score": 0.0,
         "model_available_rate": 0.0,
+        "feedback_counts": {
+            "confirmed_fraud": 0,
+            "false_positive": 0,
+            "legitimate": 0,
+            "unreviewed": 0,
+        },
     }
 
 
@@ -105,6 +115,7 @@ def test_metrics_calculate_total_transactions(client: TestClient, db_session: Se
         risk_level="HIGH",
         decision="BLOCK",
         risk_score=Decimal("0.9000"),
+        feedback_label="confirmed_fraud",
     )
 
     response = client.get("/dashboard/metrics", headers=headers)
@@ -117,6 +128,12 @@ def test_metrics_calculate_total_transactions(client: TestClient, db_session: Se
     assert data["blocked_rate"] == 0.3333
     assert data["average_final_score"] == 0.5333
     assert data["model_available_rate"] == 0.3333
+    assert data["feedback_counts"] == {
+        "confirmed_fraud": 1,
+        "false_positive": 0,
+        "legitimate": 0,
+        "unreviewed": 2,
+    }
 
 
 def test_recent_transactions_respects_limit(client: TestClient, db_session: Session) -> None:

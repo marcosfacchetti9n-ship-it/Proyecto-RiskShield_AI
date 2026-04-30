@@ -4,7 +4,7 @@ End-to-end transaction risk scoring platform using FastAPI, PostgreSQL, business
 
 ## Current Status
 
-Phases 1 to 7 are implemented:
+Phases 1 to 8 are implemented:
 
 - Initial repository structure
 - Minimal FastAPI backend
@@ -32,10 +32,7 @@ Phases 1 to 7 are implemented:
 - Protected dashboard metrics endpoints
 - React + TypeScript administrative dashboard
 - Dashboard charts and transaction analysis form
-
-The following modules are intentionally not implemented yet:
-
-- Feedback workflow
+- Manual feedback workflow for reviewed transactions
 
 ## Project Structure
 
@@ -77,10 +74,12 @@ backend/
       0001_initial_schema.py
       0002_add_main_factors.py
       0003_add_ml_score_fields.py
+      0004_add_transaction_feedback.py
   tests/
     conftest.py
     test_auth.py
     test_dashboard.py
+    test_feedback.py
     test_risk_engine.py
   alembic.ini
   Dockerfile
@@ -100,6 +99,7 @@ frontend/
       transactions.ts
     components/
       DecisionBadge.tsx
+      FeedbackBadge.tsx
       Layout.tsx
       MetricCard.tsx
       ProtectedRoute.tsx
@@ -345,6 +345,36 @@ The response includes:
 }
 ```
 
+Add manual review feedback:
+
+```bash
+curl -X PATCH http://localhost:8000/transactions/TX-001/feedback \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <ACCESS_TOKEN>" \
+  -d '{
+    "feedback_label": "confirmed_fraud",
+    "feedback_notes": "Confirmed after manual review."
+  }'
+```
+
+Allowed `feedback_label` values:
+
+- `confirmed_fraud`
+- `false_positive`
+- `legitimate`
+
+Example response excerpt:
+
+```json
+{
+  "transaction_id": "TX-001",
+  "feedback_label": "confirmed_fraud",
+  "feedback_notes": "Confirmed after manual review.",
+  "feedback_created_at": "2026-04-30T15:20:00Z",
+  "feedback_updated_at": "2026-04-30T15:20:00Z"
+}
+```
+
 ## Dashboard API
 
 Dashboard endpoints require a Bearer token.
@@ -373,7 +403,13 @@ Example response:
   },
   "blocked_rate": 0.125,
   "average_final_score": 0.42,
-  "model_available_rate": 0.95
+  "model_available_rate": 0.95,
+  "feedback_counts": {
+    "confirmed_fraud": 10,
+    "false_positive": 3,
+    "legitimate": 20,
+    "unreviewed": 87
+  }
 }
 ```
 
@@ -382,6 +418,7 @@ Metrics:
 - `blocked_rate`: blocked transactions divided by total transactions.
 - `average_final_score`: average persisted final score (`risk_score`).
 - `model_available_rate`: transactions analyzed with ML available divided by total transactions.
+- `feedback_counts`: manual review totals by feedback label plus unreviewed transactions.
 
 Get recent transactions:
 
@@ -436,14 +473,16 @@ Frontend routes:
 - `/login`: admin login
 - `/dashboard`: metrics, charts and recent transactions
 - `/transactions`: transaction table and analysis form
-- `/transactions/:id`: transaction detail view
+- `/transactions/:id`: transaction detail view with manual feedback controls
+
+Manual feedback is available from a transaction detail page. Open a transaction from the table, choose the review label, add optional notes and save the feedback.
 
 Future screenshots to add:
 
 - Login screen
 - Dashboard metrics overview
 - Transaction analysis form with a HIGH risk result
-- Transaction detail with rule and ML scores
+- Transaction detail with rule, ML and feedback data
 
 ## Tests
 
@@ -455,4 +494,4 @@ docker compose run --rm api python -m pytest
 
 ## Next Phase
 
-Phase 8 will add transaction feedback labels for fraud review.
+Phase 9 will broaden automated test coverage around the API and risk decision flow.

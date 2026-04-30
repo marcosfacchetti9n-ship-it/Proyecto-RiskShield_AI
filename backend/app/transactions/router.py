@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from app.auth.service import get_current_active_user
 from app.db.session import get_db
 from app.transactions import service
-from app.transactions.schemas import TransactionCreate, TransactionRead
+from app.transactions.schemas import FeedbackUpdate, TransactionCreate, TransactionRead
 
 
 router = APIRouter(
@@ -41,3 +41,16 @@ def list_transactions(
     db: Session = Depends(get_db),
 ) -> list[TransactionRead]:
     return service.list_transactions(db=db, limit=limit, offset=offset)
+
+
+@router.patch("/{transaction_id}/feedback", response_model=TransactionRead)
+def update_transaction_feedback(
+    transaction_id: str,
+    feedback_in: FeedbackUpdate,
+    db: Session = Depends(get_db),
+) -> TransactionRead:
+    return service.update_transaction_feedback(
+        db=db,
+        transaction_id=transaction_id,
+        feedback_in=feedback_in,
+    )

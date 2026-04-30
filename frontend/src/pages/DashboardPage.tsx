@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Ban, BrainCircuit, Gauge, ShieldAlert } from "lucide-react";
+import { Ban, BrainCircuit, ClipboardCheck, Gauge, ShieldAlert } from "lucide-react";
 import {
   Bar,
   BarChart,
@@ -19,6 +19,7 @@ import {
   getRecentTransactions,
 } from "../api/dashboard";
 import { MetricCard } from "../components/MetricCard";
+import { getFeedbackLabel } from "../components/FeedbackBadge";
 import { TransactionTable } from "../components/TransactionTable";
 import type {
   CategoryRiskSummary,
@@ -132,6 +133,23 @@ export function DashboardPage() {
           helper="Analyses with model available"
           icon={<BrainCircuit size={20} />}
         />
+      </section>
+
+      <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="flex items-center gap-2">
+          <ClipboardCheck size={18} className="text-slate-600" />
+          <h2 className="text-base font-semibold text-slate-950">Feedback Review</h2>
+        </div>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {Object.entries(metrics?.feedback_counts ?? {}).map(([label, count]) => (
+            <div key={label} className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+              <p className="text-xs font-medium uppercase text-slate-500">
+                {getFeedbackLabel(label === "unreviewed" ? null : label)}
+              </p>
+              <p className="mt-1 text-xl font-semibold text-slate-950">{count}</p>
+            </div>
+          ))}
+        </div>
       </section>
 
       <section className="grid gap-4 xl:grid-cols-2">

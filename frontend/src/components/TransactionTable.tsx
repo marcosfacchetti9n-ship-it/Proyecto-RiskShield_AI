@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { DecisionBadge } from "./DecisionBadge";
+import { FeedbackBadge } from "./FeedbackBadge";
 import { RiskBadge } from "./RiskBadge";
 import type { RecentTransaction } from "../types/dashboard";
 import type { Transaction } from "../types/transaction";
@@ -48,6 +49,7 @@ export function TransactionTable({ transactions, compact = false }: TransactionT
               <th className="px-4 py-3 text-left font-semibold text-slate-600">Category</th>
               <th className="px-4 py-3 text-left font-semibold text-slate-600">Risk</th>
               <th className="px-4 py-3 text-left font-semibold text-slate-600">Decision</th>
+              <th className="px-4 py-3 text-left font-semibold text-slate-600">Feedback</th>
               <th className="px-4 py-3 text-left font-semibold text-slate-600">Score</th>
               {!compact ? (
                 <th className="px-4 py-3 text-left font-semibold text-slate-600">Created</th>
@@ -84,6 +86,9 @@ export function TransactionTable({ transactions, compact = false }: TransactionT
                 </td>
                 <td className="whitespace-nowrap px-4 py-3">
                   <DecisionBadge decision={transaction.decision} />
+                </td>
+                <td className="whitespace-nowrap px-4 py-3">
+                  <FeedbackBadge label={transaction.feedback_label} />
                 </td>
                 <td className="whitespace-nowrap px-4 py-3 font-medium text-slate-700">
                   {formatScore(transaction.final_score)}

@@ -1,5 +1,6 @@
 export type RiskLevel = "LOW" | "MEDIUM" | "HIGH";
 export type Decision = "APPROVE" | "REVIEW" | "BLOCK";
+export type FeedbackLabel = "confirmed_fraud" | "false_positive" | "legitimate";
 
 export interface TransactionInput {
   user_id: string;
@@ -21,5 +22,14 @@ export interface Transaction extends TransactionInput {
   decision: Decision | null;
   main_factors: string[];
   model_available: boolean;
+  feedback_label: FeedbackLabel | null;
+  feedback_notes: string | null;
+  feedback_created_at: string | null;
+  feedback_updated_at: string | null;
   created_at: string;
+}
+
+export interface FeedbackUpdate {
+  feedback_label: FeedbackLabel;
+  feedback_notes?: string | null;
 }

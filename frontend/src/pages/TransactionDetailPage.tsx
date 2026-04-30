@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
-import { listTransactions } from "../api/transactions";
+import { ArrowLeft, Save } from "lucide-react";
+import { listTransactions, updateTransactionFeedback } from "../api/transactions";
 import { DecisionBadge } from "../components/DecisionBadge";
+import { FeedbackBadge, getFeedbackLabel } from "../components/FeedbackBadge";
 import { RiskBadge } from "../components/RiskBadge";
-import type { Transaction } from "../types/transaction";
+import type { FeedbackLabel, Transaction } from "../types/transaction";
 
 function formatScore(score: number | null): string {
   return score === null ? "-" : score.toFixed(3);
@@ -13,18 +14,54 @@ function formatScore(score: number | null): string {
 export function TransactionDetailPage() {
   const { id } = useParams();
   const [transaction, setTransaction] = useState<Transaction | null>(null);
+  const [feedbackLabel, setFeedbackLabel] = useState<FeedbackLabel>("confirmed_fraud");
+  const [feedbackNotes, setFeedbackNotes] = useState("");
+  const [feedbackMessage, setFeedbackMessage] = useState("");
+  const [feedbackError, setFeedbackError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [isSavingFeedback, setIsSavingFeedback] = useState(false);
 
   useEffect(() => {
     async function loadTransaction() {
       const transactions = await listTransactions(100, 0);
       const match = transactions.find((item) => String(item.id) === id) ?? null;
       setTransaction(match);
+      setFeedbackLabel(match?.feedback_label ?? "confirmed_fraud");
+      setFeedbackNotes(match?.feedback_notes ?? "");
       setIsLoading(false);
     }
 
     loadTransaction();
   }, [id]);
+
+  async function handleFeedbackSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!transaction) {
+      return;
+    }
+
+    setIsSavingFeedback(true);
+    setFeedbackMessage("");
+    setFeedbackError("");
+
+    try {
+      const updatedTransaction = await updateTransactionFeedback(
+        transaction.transaction_id,
+        {
+          feedback_label: feedbackLabel,
+          feedback_notes: feedbackNotes.trim() || null,
+        },
+      );
+      setTransaction(updatedTransaction);
+      setFeedbackLabel(updatedTransaction.feedback_label ?? "confirmed_fraud");
+      setFeedbackNotes(updatedTransaction.feedback_notes ?? "");
+      setFeedbackMessage("Feedback saved.");
+    } catch {
+      setFeedbackError("Feedback could not be saved.");
+    } finally {
+      setIsSavingFeedback(false);
+    }
+  }
 
   if (isLoading) {
     return <p className="text-sm text-slate-500">Loading transaction...</p>;
@@ -98,6 +135,74 @@ export function TransactionDetailPage() {
             Model: {transaction.model_available ? "Available" : "Rules only"}
           </p>
         </div>
+      </section>
+
+      <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+          <h2 className="text-base font-semibold text-slate-950">Manual Review</h2>
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <FeedbackBadge label={transaction.feedback_label} />
+            <span className="text-sm text-slate-500">
+              {transaction.feedback_updated_at
+                ? new Intl.DateTimeFormat("en", {
+                    dateStyle: "medium",
+                    timeStyle: "short",
+                  }).format(new Date(transaction.feedback_updated_at))
+                : "Pending review"}
+            </span>
+          </div>
+          {transaction.feedback_notes ? (
+            <p className="mt-4 rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-700">
+              {transaction.feedback_notes}
+            </p>
+          ) : null}
+        </div>
+
+        <form
+          onSubmit={handleFeedbackSubmit}
+          className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm"
+        >
+          <label className="block text-sm font-medium text-slate-700">
+            Feedback
+            <select
+              value={feedbackLabel}
+              onChange={(event) => setFeedbackLabel(event.target.value as FeedbackLabel)}
+              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-950 focus:ring-2 focus:ring-slate-200"
+            >
+              <option value="confirmed_fraud">{getFeedbackLabel("confirmed_fraud")}</option>
+              <option value="false_positive">{getFeedbackLabel("false_positive")}</option>
+              <option value="legitimate">{getFeedbackLabel("legitimate")}</option>
+            </select>
+          </label>
+          <label className="mt-3 block text-sm font-medium text-slate-700">
+            Notes
+            <textarea
+              value={feedbackNotes}
+              onChange={(event) => setFeedbackNotes(event.target.value)}
+              rows={4}
+              maxLength={500}
+              className="mt-1 w-full resize-none rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-950 focus:ring-2 focus:ring-slate-200"
+            />
+          </label>
+          {feedbackMessage ? (
+            <p className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+              {feedbackMessage}
+            </p>
+          ) : null}
+          {feedbackError ? (
+            <p className="mt-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
+              {feedbackError}
+            </p>
+          ) : null}
+          <button
+            type="submit"
+            disabled={isSavingFeedback}
+            className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+          >
+            <Save size={18} />
+            {isSavingFeedback ? "Saving" : "Save Feedback"}
+          </button>
+        </form>
       </section>
 
       <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">

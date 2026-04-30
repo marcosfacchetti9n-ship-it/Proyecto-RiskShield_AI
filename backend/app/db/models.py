@@ -30,6 +30,11 @@ class Transaction(Base):
     __table_args__ = (
         CheckConstraint("amount > 0", name="ck_transactions_amount_positive"),
         CheckConstraint("hour >= 0 AND hour <= 23", name="ck_transactions_hour_range"),
+        CheckConstraint(
+            "feedback_label IS NULL OR feedback_label IN "
+            "('confirmed_fraud', 'false_positive', 'legitimate')",
+            name="ck_transactions_feedback_label",
+        ),
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
@@ -62,6 +67,16 @@ class Transaction(Base):
         default=list,
         server_default=text("'[]'"),
         nullable=False,
+    )
+    feedback_label: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    feedback_notes: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    feedback_created_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+    feedback_updated_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

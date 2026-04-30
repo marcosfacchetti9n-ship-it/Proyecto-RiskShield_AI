@@ -1,5 +1,7 @@
+from datetime import datetime, timezone
 from uuid import uuid4
 
+from fastapi import HTTPException, status
 from sqlalchemy import desc, func, select
 from sqlalchemy.orm import Session
 
@@ -7,7 +9,7 @@ from app.db.models import Transaction
 from app.ml.model import get_ml_model
 from app.risk.engine import calculate_risk
 from app.risk.types import RiskInput
-from app.transactions.schemas import TransactionCreate
+from app.transactions.schemas import FeedbackUpdate, TransactionCreate
 
 
 def create_transaction(
@@ -74,6 +76,44 @@ def list_transactions(
     )
 
     return list(db.scalars(statement).all())
+
+
+def update_transaction_feedback(
+    db: Session,
+    transaction_id: str,
+    feedback_in: FeedbackUpdate,
+) -> Transaction:
+    transaction = get_transaction_by_transaction_id(
+        db=db,
+        transaction_id=transaction_id,
+    )
+    if transaction is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Transaction not found",
+        )
+
+    now = datetime.now(timezone.utc)
+    if transaction.feedback_created_at is None:
+        transaction.feedback_created_at = now
+
+    transaction.feedback_label = feedback_in.feedback_label
+    if "feedback_notes" in feedback_in.model_fields_set:
+        transaction.feedback_notes = feedback_in.feedback_notes
+    transaction.feedback_updated_at = now
+
+    db.commit()
+    db.refresh(transaction)
+
+    return transaction
+
+
+def get_transaction_by_transaction_id(
+    db: Session,
+    transaction_id: str,
+) -> Transaction | None:
+    statement = select(Transaction).where(Transaction.transaction_id == transaction_id)
+    return db.scalars(statement).first()
 
 
 def get_usual_country(db: Session, user_id: str) -> str | None:

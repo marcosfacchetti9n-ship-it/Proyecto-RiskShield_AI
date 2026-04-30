@@ -7,6 +7,7 @@ export interface DashboardMetrics {
   blocked_rate: number;
   average_final_score: number;
   model_available_rate: number;
+  feedback_counts: Record<string, number>;
 }
 
 export type RecentTransaction = Pick<
@@ -21,6 +22,7 @@ export type RecentTransaction = Pick<
   | "risk_level"
   | "decision"
   | "final_score"
+  | "feedback_label"
   | "created_at"
 >;
 

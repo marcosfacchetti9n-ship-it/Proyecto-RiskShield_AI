@@ -1,6 +1,10 @@
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
+
+
+FeedbackLabel = Literal["confirmed_fraud", "false_positive", "legitimate"]
 
 
 class TransactionCreate(BaseModel):
@@ -27,6 +31,15 @@ class TransactionRead(TransactionCreate):
     decision: str | None = None
     main_factors: list[str] = Field(default_factory=list)
     model_available: bool = False
+    feedback_label: FeedbackLabel | None = None
+    feedback_notes: str | None = None
+    feedback_created_at: datetime | None = None
+    feedback_updated_at: datetime | None = None
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class FeedbackUpdate(BaseModel):
+    feedback_label: FeedbackLabel
+    feedback_notes: str | None = Field(default=None, max_length=500)

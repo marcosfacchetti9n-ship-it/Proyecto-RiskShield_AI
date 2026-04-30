@@ -7,12 +7,14 @@ from app.db.models import Transaction
 
 RISK_LEVELS = ("LOW", "MEDIUM", "HIGH")
 DECISIONS = ("APPROVE", "REVIEW", "BLOCK")
+FEEDBACK_LABELS = ("confirmed_fraud", "false_positive", "legitimate")
 
 
 def get_dashboard_metrics(db: Session) -> DashboardMetrics:
     total_transactions = db.scalar(select(func.count(Transaction.id))) or 0
     risk_level_counts = _get_group_counts(db=db, column=Transaction.risk_level, keys=RISK_LEVELS)
     decision_counts = _get_group_counts(db=db, column=Transaction.decision, keys=DECISIONS)
+    feedback_counts = _get_feedback_counts(db=db)
 
     if total_transactions == 0:
         return DashboardMetrics(
@@ -22,6 +24,7 @@ def get_dashboard_metrics(db: Session) -> DashboardMetrics:
             blocked_rate=0.0,
             average_final_score=0.0,
             model_available_rate=0.0,
+            feedback_counts=feedback_counts,
         )
 
     blocked_transactions = decision_counts["BLOCK"]
@@ -40,6 +43,7 @@ def get_dashboard_metrics(db: Session) -> DashboardMetrics:
         blocked_rate=_round_ratio(blocked_transactions, total_transactions),
         average_final_score=round(float(average_score), 4),
         model_available_rate=_round_ratio(model_available_count, total_transactions),
+        feedback_counts=feedback_counts,
     )
 
 
@@ -83,6 +87,24 @@ def _get_group_counts(db: Session, column, keys: tuple[str, ...]) -> dict[str, i
     for key, count in rows:
         if key in counts:
             counts[str(key)] = int(count)
+
+    return counts
+
+
+def _get_feedback_counts(db: Session) -> dict[str, int]:
+    counts = {key: 0 for key in FEEDBACK_LABELS}
+    counts["unreviewed"] = 0
+    rows = db.execute(
+        select(Transaction.feedback_label, func.count(Transaction.id)).group_by(
+            Transaction.feedback_label
+        )
+    ).all()
+
+    for label, count in rows:
+        if label is None:
+            counts["unreviewed"] = int(count)
+        elif label in counts:
+            counts[str(label)] = int(count)
 
     return counts
 

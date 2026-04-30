@@ -10,6 +10,7 @@ class DashboardMetrics(BaseModel):
     blocked_rate: float
     average_final_score: float
     model_available_rate: float
+    feedback_counts: dict[str, int]
 
 
 class RecentTransaction(BaseModel):
@@ -23,6 +24,7 @@ class RecentTransaction(BaseModel):
     risk_level: str | None = None
     decision: str | None = None
     final_score: float | None = None
+    feedback_label: str | None = None
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
