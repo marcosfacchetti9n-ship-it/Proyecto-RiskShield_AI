@@ -19,6 +19,29 @@ RiskShield AI demonstrates that full workflow:
 - Dashboard metrics summarize operational risk.
 - Admin users can add manual feedback for future model improvement.
 
+## Live Demo
+
+Frontend:
+
+[https://riskshield-dashboard.onrender.com](https://riskshield-dashboard.onrender.com)
+
+Backend API:
+
+[https://proyecto-riskshield-ai.onrender.com](https://proyecto-riskshield-ai.onrender.com)
+
+API documentation:
+
+[https://proyecto-riskshield-ai.onrender.com/docs](https://proyecto-riskshield-ai.onrender.com/docs)
+
+Demo access:
+
+```text
+Email: demo@riskshieldai.dev
+Password: Demo123456
+```
+
+The Render free tier may take a few seconds to wake up after inactivity.
+
 ## Features
 
 - FastAPI backend with modular routers, schemas and services
@@ -705,7 +728,7 @@ Building RiskShield AI reinforced practical skills across the full application l
 
 ## Project Status
 
-RiskShield AI is complete as a portfolio-ready MVP. It includes backend, database, migrations, authentication, risk scoring, ML training flow, dashboard API, frontend dashboard, manual feedback and automated backend tests.
+RiskShield AI is complete as a portfolio-ready MVP and is deployed publicly on Render with a Neon PostgreSQL database. It includes backend, database, migrations, authentication, risk scoring, ML training flow, dashboard API, frontend dashboard, manual feedback and automated backend tests.
 
 ## License
 
