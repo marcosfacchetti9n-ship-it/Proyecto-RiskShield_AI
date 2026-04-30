@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from decimal import Decimal
 
-from sqlalchemy import Boolean, CheckConstraint, DateTime, Integer, Numeric, String
+from sqlalchemy import Boolean, CheckConstraint, DateTime, Integer, JSON, Numeric, String, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.database import Base
@@ -49,6 +49,12 @@ class Transaction(Base):
     risk_score: Mapped[Decimal | None] = mapped_column(Numeric(5, 4), nullable=True)
     risk_level: Mapped[str | None] = mapped_column(String(20), nullable=True)
     decision: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    main_factors: Mapped[list[str]] = mapped_column(
+        JSON,
+        default=list,
+        server_default=text("'[]'::json"),
+        nullable=False,
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=utc_now,

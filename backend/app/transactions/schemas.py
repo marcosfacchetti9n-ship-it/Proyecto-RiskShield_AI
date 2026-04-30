@@ -23,6 +23,7 @@ class TransactionRead(TransactionCreate):
     risk_score: float | None = None
     risk_level: str | None = None
     decision: str | None = None
+    main_factors: list[str] = Field(default_factory=list)
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)

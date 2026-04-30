@@ -1,0 +1,6 @@
+HIGH_AMOUNT = "High transaction amount"
+SUSPICIOUS_HOUR = "Transaction hour between 00:00 and 05:00"
+ELECTRONICS_CATEGORY = "Moderate-risk merchant category: electronics"
+GAMBLING_CATEGORY = "High-risk merchant category: gambling"
+UNKNOWN_DEVICE = "Unknown device"
+UNUSUAL_COUNTRY = "Country differs from user's usual country"

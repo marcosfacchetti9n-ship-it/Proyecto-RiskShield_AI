@@ -17,6 +17,18 @@ def create_transaction(
     return service.create_transaction(db=db, transaction_in=transaction_in)
 
 
+@router.post(
+    "/analyze",
+    response_model=TransactionRead,
+    status_code=status.HTTP_201_CREATED,
+)
+def analyze_transaction(
+    transaction_in: TransactionCreate,
+    db: Session = Depends(get_db),
+) -> TransactionRead:
+    return service.analyze_transaction(db=db, transaction_in=transaction_in)
+
+
 @router.get("", response_model=list[TransactionRead])
 def list_transactions(
     limit: int = Query(default=50, ge=1, le=100),

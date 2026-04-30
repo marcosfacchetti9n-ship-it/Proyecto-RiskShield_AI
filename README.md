@@ -4,7 +4,7 @@ End-to-end transaction risk scoring platform using FastAPI, PostgreSQL, business
 
 ## Current Status
 
-Phase 2 is implemented:
+Phases 1 to 3 are implemented:
 
 - Initial repository structure
 - Minimal FastAPI backend
@@ -18,14 +18,17 @@ Phase 2 is implemented:
 - Alembic configuration
 - Initial database migration
 - Basic transaction create/list endpoints
+- Rule-based Risk Engine
+- Transaction analysis endpoint
+- Persisted risk score, risk level, decision and main factors
+- Unit tests for risk scoring rules
 
 The following modules are intentionally not implemented yet:
 
 - Authentication
-- Machine Learning
 - Frontend
 - Dashboard
-- Advanced risk scoring logic
+- Machine Learning-based scoring
 
 ## Project Structure
 
@@ -43,9 +46,17 @@ backend/
       router.py
       schemas.py
       service.py
+    risk/
+      engine.py
+      explanations.py
+      rules.py
+      types.py
   alembic/
     versions/
       0001_initial_schema.py
+      0002_add_main_factors.py
+  tests/
+    test_risk_engine.py
   alembic.ini
   Dockerfile
   requirements.txt
@@ -151,6 +162,46 @@ List transactions:
 curl "http://localhost:8000/transactions?limit=50&offset=0"
 ```
 
+Analyze and persist a transaction:
+
+```bash
+curl -X POST http://localhost:8000/transactions/analyze \
+  -H "Content-Type: application/json" \
+  -d '{
+    "user_id": "USR-001",
+    "amount": 250000,
+    "currency": "ARS",
+    "country": "Argentina",
+    "device": "unknown",
+    "hour": 3,
+    "merchant_category": "gambling"
+  }'
+```
+
+The response includes:
+
+```json
+{
+  "risk_score": 1.0,
+  "risk_level": "HIGH",
+  "decision": "BLOCK",
+  "main_factors": [
+    "High transaction amount",
+    "Transaction hour between 00:00 and 05:00",
+    "High-risk merchant category: gambling",
+    "Unknown device"
+  ]
+}
+```
+
+## Tests
+
+Run unit tests:
+
+```bash
+docker compose run --rm api python -m pytest
+```
+
 ## Next Phase
 
-Phase 3 will add the first version of the Risk Engine using business rules only.
+Phase 4 will add the first Machine Learning model and combine its score with the rule-based engine.
