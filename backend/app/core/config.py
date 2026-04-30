@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     database_url: str = (
         "postgresql+psycopg://riskshield:riskshield_password@localhost:5432/riskshield_ai"
     )
+    ml_model_path: str = "app/ml/model.joblib"
 
     model_config = SettingsConfigDict(
         env_file=(".env", "../.env"),

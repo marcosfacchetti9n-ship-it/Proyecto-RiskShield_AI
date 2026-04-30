@@ -4,6 +4,7 @@ from sqlalchemy import desc, func, select
 from sqlalchemy.orm import Session
 
 from app.db.models import Transaction
+from app.ml.model import get_ml_model
 from app.risk.engine import calculate_risk
 from app.risk.types import RiskInput
 from app.transactions.schemas import TransactionCreate
@@ -32,20 +33,24 @@ def analyze_transaction(
     usual_country = get_usual_country(db=db, user_id=transaction_in.user_id)
     risk_input = RiskInput(
         amount=transaction_in.amount,
+        currency=transaction_in.currency,
         country=transaction_in.country,
         device=transaction_in.device,
         hour=transaction_in.hour,
         merchant_category=transaction_in.merchant_category,
         usual_country=usual_country,
     )
-    assessment = calculate_risk(risk_input)
+    assessment = calculate_risk(risk_input, ml_model=get_ml_model())
 
     transaction = Transaction(
         transaction_id=f"TX-{uuid4().hex[:12].upper()}",
-        risk_score=assessment.risk_score,
+        rule_score=assessment.rule_score,
+        ml_score=assessment.ml_score,
+        risk_score=assessment.final_score,
         risk_level=assessment.risk_level,
         decision=assessment.decision,
         main_factors=assessment.main_factors,
+        model_available=assessment.model_available,
         **transaction_in.model_dump(),
     )
 

@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Literal
+from typing import Literal, Protocol
 
 
 RiskLevel = Literal["LOW", "MEDIUM", "HIGH"]
@@ -13,6 +13,7 @@ class RiskInput:
     device: str
     hour: int
     merchant_category: str
+    currency: str = "ARS"
     usual_country: str | None = None
 
 
@@ -24,7 +25,23 @@ class RuleResult:
 
 @dataclass(frozen=True)
 class RiskAssessment:
-    risk_score: float
+    rule_score: float
+    ml_score: float | None
+    final_score: float
     risk_level: RiskLevel
     decision: Decision
     main_factors: list[str]
+    model_available: bool
+
+    @property
+    def risk_score(self) -> float:
+        return self.final_score
+
+
+class RiskModel(Protocol):
+    @property
+    def is_available(self) -> bool:
+        pass
+
+    def predict_score(self, transaction: RiskInput) -> float | None:
+        pass

@@ -4,7 +4,7 @@ End-to-end transaction risk scoring platform using FastAPI, PostgreSQL, business
 
 ## Current Status
 
-Phases 1 to 3 are implemented:
+Phases 1 to 4 are implemented:
 
 - Initial repository structure
 - Minimal FastAPI backend
@@ -22,13 +22,16 @@ Phases 1 to 3 are implemented:
 - Transaction analysis endpoint
 - Persisted risk score, risk level, decision and main factors
 - Unit tests for risk scoring rules
+- Synthetic transaction dataset generation
+- Scikit-learn training pipeline
+- Optional ML model loading with rule-based fallback
+- Final risk score combining rules and ML
 
 The following modules are intentionally not implemented yet:
 
 - Authentication
 - Frontend
 - Dashboard
-- Machine Learning-based scoring
 
 ## Project Structure
 
@@ -51,10 +54,16 @@ backend/
       explanations.py
       rules.py
       types.py
+    ml/
+      generate_dataset.py
+      train_model.py
+      model.py
+      data/
   alembic/
     versions/
       0001_initial_schema.py
       0002_add_main_factors.py
+      0003_add_ml_score_fields.py
   tests/
     test_risk_engine.py
   alembic.ini
@@ -120,6 +129,40 @@ Check current migration:
 docker compose run --rm api alembic current
 ```
 
+## Machine Learning Model
+
+Generate the synthetic dataset:
+
+```bash
+docker compose run --rm api python app/ml/generate_dataset.py
+```
+
+The dataset is saved to:
+
+```text
+backend/app/ml/data/synthetic_transactions.csv
+```
+
+Train the model:
+
+```bash
+docker compose run --rm api python app/ml/train_model.py
+```
+
+The trained model is saved to:
+
+```text
+backend/app/ml/model.joblib
+```
+
+Generated datasets and model files are ignored by Git. If the model file does not exist, the API still works using only the rule-based Risk Engine.
+
+After training, recreate the API container so it loads the model:
+
+```bash
+docker compose up -d --force-recreate api
+```
+
 ## Health Check
 
 Test the backend:
@@ -182,7 +225,9 @@ The response includes:
 
 ```json
 {
-  "risk_score": 1.0,
+  "rule_score": 1.0,
+  "ml_score": 0.81,
+  "final_score": 0.924,
   "risk_level": "HIGH",
   "decision": "BLOCK",
   "main_factors": [
@@ -190,7 +235,8 @@ The response includes:
     "Transaction hour between 00:00 and 05:00",
     "High-risk merchant category: gambling",
     "Unknown device"
-  ]
+  ],
+  "model_available": true
 }
 ```
 
@@ -204,4 +250,4 @@ docker compose run --rm api python -m pytest
 
 ## Next Phase
 
-Phase 4 will add the first Machine Learning model and combine its score with the rule-based engine.
+Phase 5 will add JWT authentication and protect administrative endpoints.

@@ -46,9 +46,17 @@ class Transaction(Base):
     device: Mapped[str] = mapped_column(String(50), nullable=False)
     hour: Mapped[int] = mapped_column(Integer, nullable=False)
     merchant_category: Mapped[str] = mapped_column(String(80), nullable=False)
+    rule_score: Mapped[Decimal | None] = mapped_column(Numeric(5, 4), nullable=True)
+    ml_score: Mapped[Decimal | None] = mapped_column(Numeric(5, 4), nullable=True)
     risk_score: Mapped[Decimal | None] = mapped_column(Numeric(5, 4), nullable=True)
     risk_level: Mapped[str | None] = mapped_column(String(20), nullable=True)
     decision: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    model_available: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        server_default=text("false"),
+        nullable=False,
+    )
     main_factors: Mapped[list[str]] = mapped_column(
         JSON,
         default=list,
@@ -60,3 +68,7 @@ class Transaction(Base):
         default=utc_now,
         nullable=False,
     )
+
+    @property
+    def final_score(self) -> Decimal | None:
+        return self.risk_score

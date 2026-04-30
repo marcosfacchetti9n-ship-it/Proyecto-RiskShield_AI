@@ -20,10 +20,13 @@ class TransactionCreate(BaseModel):
 class TransactionRead(TransactionCreate):
     id: int
     transaction_id: str
-    risk_score: float | None = None
+    rule_score: float | None = None
+    ml_score: float | None = None
+    final_score: float | None = None
     risk_level: str | None = None
     decision: str | None = None
     main_factors: list[str] = Field(default_factory=list)
+    model_available: bool = False
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
