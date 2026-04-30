@@ -1,4 +1,7 @@
 .env
+.env.*
+!.env.example
+!frontend/.env.example
 .venv/
 venv/
 __pycache__/
@@ -6,15 +9,25 @@ __pycache__/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
 
 .DS_Store
 Thumbs.db
+.vscode/
+.idea/
 
 node_modules/
 dist/
 build/
+frontend/node_modules/
+frontend/dist/
+frontend/build/
 
 *.log
+*.tmp
+*.temp
 
 backend/app/ml/data/*.csv
 backend/app/ml/model.joblib
