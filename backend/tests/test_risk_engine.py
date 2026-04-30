@@ -57,6 +57,7 @@ def test_medium_risk_transaction() -> None:
     assert 0.35 <= assessment.final_score <= 0.70
     assert assessment.risk_level == "MEDIUM"
     assert assessment.decision == "REVIEW"
+    assert isinstance(assessment.main_factors, list)
     assert "High transaction amount" in assessment.main_factors
     assert "Moderate-risk merchant category: electronics" in assessment.main_factors
 
@@ -75,6 +76,7 @@ def test_high_risk_transaction() -> None:
     assert assessment.final_score > 0.70
     assert assessment.risk_level == "HIGH"
     assert assessment.decision == "BLOCK"
+    assert isinstance(assessment.main_factors, list)
     assert "High-risk merchant category: gambling" in assessment.main_factors
 
 

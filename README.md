@@ -4,7 +4,7 @@ End-to-end transaction risk scoring platform using FastAPI, PostgreSQL, business
 
 ## Current Status
 
-Phases 1 to 8 are implemented:
+Phases 1 to 9 are implemented:
 
 - Initial repository structure
 - Minimal FastAPI backend
@@ -33,6 +33,8 @@ Phases 1 to 8 are implemented:
 - React + TypeScript administrative dashboard
 - Dashboard charts and transaction analysis form
 - Manual feedback workflow for reviewed transactions
+- Expanded backend test suite for health, auth, transactions, risk engine, ML fallback, dashboard and feedback
+- Frontend production build verification
 
 ## Project Structure
 
@@ -80,9 +82,12 @@ backend/
     test_auth.py
     test_dashboard.py
     test_feedback.py
+    test_health.py
     test_risk_engine.py
+    test_transactions.py
   alembic.ini
   Dockerfile
+  pytest.ini
   requirements.txt
 
 docker-compose.yml
@@ -486,12 +491,53 @@ Future screenshots to add:
 
 ## Tests
 
-Run unit tests:
+The backend test suite uses an in-memory SQLite database configured in `backend/tests/conftest.py`. Each test starts from a clean schema, so tests do not depend on manual data from your local PostgreSQL database.
+
+Build the API image after changing tests:
 
 ```bash
-docker compose run --rm api python -m pytest
+docker compose build api
+```
+
+Run backend tests:
+
+```bash
+docker compose run --rm api pytest
+```
+
+Run backend tests with verbose output:
+
+```bash
+docker compose run --rm api pytest -v
+```
+
+The backend suite covers:
+
+- Health check response
+- Admin registration, duplicate email validation, login and `/auth/me`
+- Protected transaction creation and listing
+- Invalid transaction payload validation
+- Rule-based risk decisions and score bounds
+- ML score combination and rule-only fallback
+- Dashboard metrics and grouped risk summaries
+- Feedback updates, invalid labels, missing transactions and persistence
+
+Build the frontend:
+
+```bash
+cd frontend
+npm run build
+```
+
+Recommended checks before pushing:
+
+```bash
+docker compose build api
+docker compose run --rm api pytest
+cd frontend
+npm run build
 ```
 
 ## Next Phase
 
-Phase 9 will broaden automated test coverage around the API and risk decision flow.
+Phase 10 will polish the professional README and portfolio documentation.
