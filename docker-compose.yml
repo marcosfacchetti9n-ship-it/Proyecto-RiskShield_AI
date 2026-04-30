@@ -7,6 +7,9 @@ services:
       APP_NAME: ${APP_NAME:-RiskShield AI}
       ENVIRONMENT: ${ENVIRONMENT:-development}
       DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://riskshield:riskshield_password@postgres:5432/riskshield_ai}
+      SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in .env}
+      ALGORITHM: ${ALGORITHM:-HS256}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-60}
     ports:
       - "${BACKEND_PORT:-8000}:8000"
     volumes:

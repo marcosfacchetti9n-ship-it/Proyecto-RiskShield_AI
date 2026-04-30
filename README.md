@@ -4,7 +4,7 @@ End-to-end transaction risk scoring platform using FastAPI, PostgreSQL, business
 
 ## Current Status
 
-Phases 1 to 4 are implemented:
+Phases 1 to 5 are implemented:
 
 - Initial repository structure
 - Minimal FastAPI backend
@@ -26,10 +26,12 @@ Phases 1 to 4 are implemented:
 - Scikit-learn training pipeline
 - Optional ML model loading with rule-based fallback
 - Final risk score combining rules and ML
+- Admin registration and login
+- JWT access tokens
+- Protected transaction endpoints
 
 The following modules are intentionally not implemented yet:
 
-- Authentication
 - Frontend
 - Dashboard
 
@@ -41,10 +43,15 @@ backend/
     main.py
     core/
       config.py
+      security.py
     db/
       database.py
       models.py
       session.py
+    auth/
+      router.py
+      schemas.py
+      service.py
     transactions/
       router.py
       schemas.py
@@ -65,6 +72,8 @@ backend/
       0002_add_main_factors.py
       0003_add_ml_score_fields.py
   tests/
+    conftest.py
+    test_auth.py
     test_risk_engine.py
   alembic.ini
   Dockerfile
@@ -88,6 +97,12 @@ On Windows PowerShell:
 
 ```powershell
 Copy-Item .env.example .env
+```
+
+Set a strong `SECRET_KEY` in `.env`. You can generate one with:
+
+```powershell
+python -c "import secrets; print(secrets.token_urlsafe(32))"
 ```
 
 Start the services:
@@ -128,6 +143,18 @@ Check current migration:
 ```bash
 docker compose run --rm api alembic current
 ```
+
+## Environment Variables
+
+Required auth variables:
+
+```text
+SECRET_KEY=replace_with_a_long_random_secret
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=60
+```
+
+`SECRET_KEY` must come from your local environment or `.env`; do not commit real secrets.
 
 ## Machine Learning Model
 
@@ -183,11 +210,38 @@ Expected response:
 
 ## Transactions API
 
+Transaction endpoints require a Bearer token.
+
+Register an admin user:
+
+```bash
+curl -X POST http://localhost:8000/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "admin@example.com",
+    "password": "StrongPass123"
+  }'
+```
+
+Login:
+
+```bash
+curl -X POST http://localhost:8000/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "admin@example.com",
+    "password": "StrongPass123"
+  }'
+```
+
+Use the returned `access_token` as a Bearer token.
+
 Create a transaction:
 
 ```bash
 curl -X POST http://localhost:8000/transactions \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <ACCESS_TOKEN>" \
   -d '{
     "user_id": "USR-001",
     "amount": 250000,
@@ -202,7 +256,8 @@ curl -X POST http://localhost:8000/transactions \
 List transactions:
 
 ```bash
-curl "http://localhost:8000/transactions?limit=50&offset=0"
+curl "http://localhost:8000/transactions?limit=50&offset=0" \
+  -H "Authorization: Bearer <ACCESS_TOKEN>"
 ```
 
 Analyze and persist a transaction:
@@ -210,6 +265,7 @@ Analyze and persist a transaction:
 ```bash
 curl -X POST http://localhost:8000/transactions/analyze \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <ACCESS_TOKEN>" \
   -d '{
     "user_id": "USR-001",
     "amount": 250000,
@@ -250,4 +306,4 @@ docker compose run --rm api python -m pytest
 
 ## Next Phase
 
-Phase 5 will add JWT authentication and protect administrative endpoints.
+Phase 6 will add dashboard API metrics.

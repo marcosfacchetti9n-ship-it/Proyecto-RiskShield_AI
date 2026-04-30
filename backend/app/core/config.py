@@ -1,5 +1,6 @@
 from functools import lru_cache
 
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -10,6 +11,9 @@ class Settings(BaseSettings):
         "postgresql+psycopg://riskshield:riskshield_password@localhost:5432/riskshield_ai"
     )
     ml_model_path: str = "app/ml/model.joblib"
+    secret_key: str = Field(min_length=32)
+    algorithm: str = "HS256"
+    access_token_expire_minutes: int = 60
 
     model_config = SettingsConfigDict(
         env_file=(".env", "../.env"),

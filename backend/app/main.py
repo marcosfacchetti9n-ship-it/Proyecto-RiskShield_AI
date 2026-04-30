@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 
+from app.auth.router import router as auth_router
 from app.core.config import get_settings
 from app.transactions.router import router as transactions_router
 
@@ -12,6 +13,7 @@ app = FastAPI(
     description="End-to-end transaction risk scoring platform.",
 )
 
+app.include_router(auth_router)
 app.include_router(transactions_router)
 
 

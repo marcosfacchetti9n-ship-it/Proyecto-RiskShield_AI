@@ -1,12 +1,17 @@
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
+from app.auth.service import get_current_active_user
 from app.db.session import get_db
 from app.transactions import service
 from app.transactions.schemas import TransactionCreate, TransactionRead
 
 
-router = APIRouter(prefix="/transactions", tags=["transactions"])
+router = APIRouter(
+    prefix="/transactions",
+    tags=["transactions"],
+    dependencies=[Depends(get_current_active_user)],
+)
 
 
 @router.post("", response_model=TransactionRead, status_code=status.HTTP_201_CREATED)

@@ -60,7 +60,7 @@ class Transaction(Base):
     main_factors: Mapped[list[str]] = mapped_column(
         JSON,
         default=list,
-        server_default=text("'[]'::json"),
+        server_default=text("'[]'"),
         nullable=False,
     )
     created_at: Mapped[datetime] = mapped_column(
